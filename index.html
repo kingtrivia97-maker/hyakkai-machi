@@ -311,7 +311,7 @@ body {
 		</div>
 
 <div id="okaba-upd" role="status"></div>
-<script>window.okabaBuild = '1793416213|14461776';</script>
+<script>window.okabaBuild = '1793417848|16889455';</script>
 <!-- okaba-pwa: ホーム画面に追加の案内・新しい版の入れかえ（tools/patch_web.py が入れる） -->
 <style>
 #okaba-a2hs{position:fixed;left:calc(12px + env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:20;
@@ -762,6 +762,251 @@ t.textContent=(m>0)?('読みこみ中… '+Math.min(100,Math.floor(v/m*100))+'%'
 }());
 </script>
 <!-- okaba-a2hs:end -->
+<!-- okaba-inapp:start okaba-inapp-v1（tools/patch_web_inapp.py） -->
+<style id="okaba-inapp-css">
+/* アプリの中のブラウザ: 選ぶ札（色: 墨 #100d0c・古い紙 #F2E8D6・dim #BDB3A3・朱 #D65238・金 #EDBF6B） */
+#okaba-bar{display:none!important}
+#okaba-ia{position:fixed;inset:0;z-index:46;display:none;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;
+ background:radial-gradient(ellipse at 50% 45%,rgba(16,13,12,.86) 0%,rgba(4,3,3,.95) 75%);color:#F2E8D6;-webkit-text-size-adjust:100%;text-size-adjust:100%;
+ font:700 16px/1.5 -apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN","BIZ UDPGothic","Noto Sans JP","Noto Sans CJK JP","Yu Gothic",sans-serif;
+ -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#okaba-ia.on{display:flex}
+#okaba-ia .ia-card{width:min(420px,100%);max-height:100%;overflow-y:auto;box-sizing:border-box;padding:18px 18px 14px;border-radius:4px;background:#100d0c;
+ background-image:radial-gradient(ellipse at 50% 0%,rgba(214,82,56,.12),transparent 60%),linear-gradient(180deg,#17110f,#0e0b0a);
+ border:1px solid #5e5245;box-shadow:inset 0 0 0 3px #100d0c,inset 0 0 0 4px rgba(242,232,214,.24),0 10px 40px rgba(0,0,0,.7);animation:iaIn .2s ease-out both}
+@keyframes iaIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#okaba-ia .ia-ttl{font-size:20px;line-height:1.4;text-align:center}
+#okaba-ia .ia-ttl b{color:#EDBF6B}
+#okaba-ia .ia-lead{font-size:15px;color:#BDB3A3;text-align:center;margin:4px 0 14px}
+#okaba-ia button{font:inherit;cursor:pointer;touch-action:manipulation;border-radius:4px;transition:transform .07s ease-out;display:block;width:100%;box-sizing:border-box}
+#okaba-ia button:active{transform:scale(.97)}
+#okaba-ia .ia-yoko{display:flex;align-items:center;gap:12px;text-align:left;padding:12px 14px;min-height:76px;color:#F2E8D6;font-size:20px;
+ background:linear-gradient(180deg,#b8402a,#8e2a1a);border:1px solid #D65238;box-shadow:inset 0 0 0 1px rgba(255,220,190,.25)}
+#okaba-ia .ia-yoko small,#okaba-ia .ia-tate small{display:block;font-size:13.5px;line-height:1.4;font-weight:700;color:#f4d9c8;margin-top:2px}
+#okaba-ia .ia-yoko svg{flex:none;width:54px;height:54px}
+#okaba-ia .ia-tate{margin-top:10px;padding:10px 14px;min-height:56px;color:#F2E8D6;font-size:17px;background:#1e1714;border:1px solid #5e5245}
+#okaba-ia .ia-tate small{color:#BDB3A3}
+#okaba-ia .ia-out{margin-top:14px;padding-top:10px;border-top:1px dashed #3a322b;font-size:13.5px;line-height:1.5;color:#BDB3A3}
+#okaba-ia .ia-out b{color:#F2E8D6}
+#okaba-ia .ia-copy{display:inline;width:auto;margin-left:4px;padding:2px 4px;min-height:32px;background:none;border:0;color:#EDBF6B;text-decoration:underline;text-underline-offset:3px;font-size:13.5px}
+#okaba-ia .ia-msg{display:block;color:#EDBF6B}
+#okaba-ia .ia-msg:empty{display:none}
+@media (orientation: landscape) and (max-height: 500px){
+ #okaba-ia .ia-card{width:min(640px,100%);display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+ #okaba-ia .ia-ttl,#okaba-ia .ia-lead,#okaba-ia .ia-out{grid-column:1/3}
+ #okaba-ia .ia-tate{margin-top:0}
+}
+/* 横に回した時: 大きさは JS が --ia-w / --ia-h / --ia-t に入れる */
+html.ia-rot #canvas{position:fixed!important;left:0!important;top:0!important;width:var(--ia-w)!important;height:var(--ia-h)!important;transform-origin:0 0;transform:var(--ia-t)}
+html.ia-rot #status{position:fixed!important;inset:auto!important;left:0!important;top:0!important;width:var(--ia-w)!important;height:var(--ia-h)!important;transform-origin:0 0;transform:var(--ia-t)}
+html.ia-rot #okaba-load .rot{display:none!important}
+html.ia-rot #okabaSafe{padding:0!important}
+/* 回した画面の中に出す小さな札（上下が逆の時に押す） */
+#okaba-iaf{position:fixed;left:0;top:0;z-index:44;display:none;pointer-events:none;width:var(--ia-w);height:var(--ia-h);transform-origin:0 0;transform:var(--ia-t)}
+html.ia-rot #okaba-iaf.on{display:block}
+#okaba-iaf button{pointer-events:auto;position:absolute;left:calc(50% - 20px);bottom:12px;transform:translateX(-100%);display:flex;align-items:center;gap:8px;
+ font:700 16px/1.3 -apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN","BIZ UDPGothic","Noto Sans JP",sans-serif;color:#F2E8D6;
+ background:rgba(16,13,12,.92);border:1px solid #D65238;border-radius:4px;padding:8px 14px;min-height:46px;cursor:pointer;touch-action:manipulation;
+ -webkit-tap-highlight-color:transparent;box-shadow:0 4px 18px rgba(0,0,0,.6);animation:iaIn .2s ease-out both}
+#okaba-iaf button svg{width:26px;height:26px;color:#EDBF6B}
+#okaba-iaf button small{display:block;font-size:12.5px;color:#BDB3A3}
+</style>
+<div id="okaba-ia" role="dialog" aria-modal="true" aria-labelledby="ia-ttl"><div class="ia-card">
+<div class="ia-ttl" id="ia-ttl"></div><div class="ia-lead">この画面は、スマホを横にしても回りません。<br>どちらで遊ぶか選んでね。</div>
+<button type="button" class="ia-yoko"><svg viewBox="0 0 54 54" fill="none" stroke="#F2E8D6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="17" width="34" height="20" rx="3.5" transform="rotate(-8 23 27)"/><path d="M14 45 a20 20 0 0 0 30 -6" stroke="#EDBF6B"/><path d="M44 33 v6 h-6" stroke="#EDBF6B"/></svg><span>横に持って遊ぶ<small>画面が横向きに回ります。<br>スマホを左にたおして持ってね</small></span></button>
+<button type="button" class="ia-tate">縦のまま遊ぶ<small>縦でも最後まで遊べます</small></button>
+<div class="ia-out">全画面で遊ぶなら: <b>右上か右下の … →「外部ブラウザで開く」</b><button type="button" class="ia-copy">リンクをコピー</button><span class="ia-msg" role="status"></span></div>
+</div></div>
+<div id="okaba-iaf"><button type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4"/><path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M6 21v-4h4"/></svg><span>上下が逆さまなら ここを押す<small>しばらくすると消えます</small></span></button></div>
+<script>
+/* アプリの中のブラウザで横画面（tools/patch_web_inapp.py・okaba-inapp-v1） */
+(function () {
+	'use strict';
+	var ua = navigator.userAgent || '';
+	var q = location.search || '';
+	var fake = /[?&]inapptest=ig\b/.test(q);
+	var inApp = fake || /Instagram|FBAN|FBAV|FB_IAB|FBIOS|Line\/|MicroMessenger|musical_ly|Bytedance|TikTok|Twitter|GSA\/|YJApp|KAKAOTALK|Snapchat|Pinterest/i.test(ua) ||
+		(/Android/.test(ua) && /; wv\)/.test(ua));
+	var standalone = false;
+	try {
+		standalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches ||
+			window.matchMedia('(display-mode: fullscreen)').matches;
+	} catch (e) { standalone = false; }
+	if (!inApp || standalone || /[?&]noinapp\b/.test(q)) { return; }   // ふつうのブラウザ: 何もしない
+
+	var app = /Instagram/i.test(ua) || fake ? 'インスタ' : /Line\//.test(ua) ? 'LINE' : /FBAN|FBAV|FB_IAB|FBIOS/.test(ua) ? 'Facebook' :
+		/TikTok|musical_ly|Bytedance/i.test(ua) ? 'TikTok' : /Twitter/i.test(ua) ? 'X' : 'アプリ';
+	var KEY = 'okabaInAppRot';
+	function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+	function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* 使えない時もある */ } }
+
+	var canvas = document.getElementById('canvas');
+	var de = document.documentElement;
+	var want = '';          // '' = まだ選んでいない / 'yoko' / 'tate'
+	var dir = lsGet(KEY + 'Dir') === 'ccw' ? 'ccw' : 'cw';   // cw: 画面の上が右（スマホを左にたおす）
+	var rot = '';           // 今の回し方: '' / 'cw' / 'ccw'
+	var vw = 0, vh = 0;
+
+	// ---- 大きさ（Godot は canvasResizePolicy 0。canvas の大きさをここで決める）----
+	function dpr() { return window.devicePixelRatio || 1; }
+	function layout() {
+		vw = window.innerWidth || de.clientWidth || 1;
+		vh = window.innerHeight || de.clientHeight || 1;
+		var r = (want === 'yoko' && vh > vw) ? dir : '';   // 画面がもう横なら回さない
+		rot = r;
+		var w = r ? vh : vw, h = r ? vw : vh;
+		de.classList.toggle('ia-rot', !!r);
+		de.style.setProperty('--ia-w', w + 'px');
+		de.style.setProperty('--ia-h', h + 'px');
+		de.style.setProperty('--ia-t', r === 'cw' ? 'translate(' + vw + 'px,0) rotate(90deg)' : r === 'ccw' ? 'translate(0,' + vh + 'px) rotate(-90deg)' : 'none');
+		if (canvas) {
+			if (!r) {
+				canvas.style.position = 'absolute'; canvas.style.left = '0px'; canvas.style.top = '0px';
+				canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+			}
+			var cw = Math.floor(w * dpr()), ch = Math.floor(h * dpr());
+			if (canvas.width !== cw || canvas.height !== ch) { canvas.width = cw; canvas.height = ch; }
+		}
+	}
+
+	// ---- 座標を回す（画面の点 → 回す前の canvas の点）----
+	function tx(x, y) {
+		if (rot === 'cw') { return [y, vw - x]; }
+		if (rot === 'ccw') { return [vh - y, x]; }
+		return [x, y];
+	}
+	function tm(x, y) {
+		if (rot === 'cw') { return [y, -x]; }
+		if (rot === 'ccw') { return [-y, x]; }
+		return [x, y];
+	}
+	function tList(l) {
+		var a = [];
+		for (var i = 0; i < (l ? l.length : 0); i++) {
+			var t = l[i], c = tx(t.clientX, t.clientY);
+			a.push({ identifier: t.identifier, target: t.target, clientX: c[0], clientY: c[1], pageX: c[0], pageY: c[1],
+				screenX: c[0], screenY: c[1], force: t.force, radiusX: t.radiusX, radiusY: t.radiusY });
+		}
+		a.item = function (n) { return a[n] || null; };
+		return a;
+	}
+	function wrapEv(ev) {
+		var c = null;
+		return new Proxy(ev, {
+			get: function (t, p) {
+				switch (p) {
+				case 'clientX': case 'pageX': case 'x': c = c || tx(t.clientX, t.clientY); return c[0];
+				case 'clientY': case 'pageY': case 'y': c = c || tx(t.clientX, t.clientY); return c[1];
+				case 'movementX': return tm(t.movementX || 0, t.movementY || 0)[0];
+				case 'movementY': return tm(t.movementX || 0, t.movementY || 0)[1];
+				case 'changedTouches': case 'touches': case 'targetTouches': return tList(t[p]);
+				}
+				var v = Reflect.get(t, p, t);
+				return typeof v === 'function' ? v.bind(t) : v;
+			}
+		});
+	}
+	// Godot が canvas と window に付ける受け手を包む（index.js より前に入れる）
+	var TYPES = { mousedown: 1, mouseup: 1, mousemove: 1, pointerdown: 1, pointerup: 1, pointermove: 1, touchstart: 1, touchmove: 1, touchend: 1, touchcancel: 1 };
+	var wraps = typeof WeakMap === 'function' ? new WeakMap() : null;
+	function hook(target) {
+		var add = target.addEventListener, rem = target.removeEventListener;
+		target.addEventListener = function (type, fn, opt) {
+			if (TYPES[type] && typeof fn === 'function' && wraps) {
+				var w = wraps.get(fn);
+				if (!w) { w = function (ev) { return fn.call(this, rot ? wrapEv(ev) : ev); }; wraps.set(fn, w); }
+				return add.call(this, type, w, opt);
+			}
+			return add.call(this, type, fn, opt);
+		};
+		target.removeEventListener = function (type, fn, opt) {
+			var w = (wraps && typeof fn === 'function') ? wraps.get(fn) : null;
+			return rem.call(this, type, w || fn, opt);
+		};
+	}
+	if (canvas && typeof Proxy === 'function' && wraps) {
+		hook(canvas);
+		hook(window);
+		var gbr = canvas.getBoundingClientRect;
+		canvas.getBoundingClientRect = function () {
+			if (!rot) { return gbr.call(canvas); }
+			var w = vh, h = vw;
+			return { x: 0, y: 0, left: 0, top: 0, right: w, bottom: h, width: w, height: h };
+		};
+	} else {
+		return;   // 古い端末: 何もしない（前のまま縦で遊べる）
+	}
+
+	// ---- Godot の大きさの決め方を「こちらで決める」にする（engine.startGame の前）----
+	var ready = window.okabaPwaReady;
+	window.okabaPwaReady = function () {
+		try { engine.config.canvasResizePolicy = 0; } catch (e) { /* engine が無い時 */ }   // eslint-disable-line no-undef
+		layout();
+		return ready ? ready.apply(this, arguments) : Promise.resolve();
+	};
+	window.okabaInApp = { app: app, get rot() { return rot; }, layout: layout };
+
+	// ---- 選ぶ札 ----
+	var box = document.getElementById('okaba-ia');
+	var flip = document.getElementById('okaba-iaf');
+	var flipT = 0;
+	function showFlip() {
+		if (!flip) { return; }
+		clearTimeout(flipT);
+		flip.classList.add('on');
+		var t0 = 0;   // ゲームが始まってから 10 秒（読みこみ中は数えない）
+		var tick = function () {
+			if (window.okabaStarted) { t0 = t0 || Date.now(); }
+			if (t0 && Date.now() - t0 > 10000) { flip.classList.remove('on'); return; }
+			flipT = setTimeout(tick, 500);
+		};
+		flipT = setTimeout(tick, 500);
+	}
+	function choose(m) {
+		want = m;
+		lsSet(KEY, m);
+		box.classList.remove('on');
+		layout();
+		if (rot) { showFlip(); }
+	}
+	function copyLink(done) {
+		var u = location.href.split('#')[0].replace(/[?&]inapptest=ig\b/, '');
+		var ok = function () { done('コピーしました。サファリかクロームの上の欄に貼りつけてね。'); };
+		try {
+			if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(u).then(ok, function () { done(u); }); return; }
+		} catch (e) { /* 下へ */ }
+		done(u);
+	}
+	function setup() {
+		if (!box) { return; }
+		box.querySelector('.ia-ttl').innerHTML = '<b>' + app + '</b>の中で開いています';
+		box.querySelector('.ia-yoko').addEventListener('click', function () { choose('yoko'); });
+		box.querySelector('.ia-tate').addEventListener('click', function () { choose('tate'); });
+		box.querySelector('.ia-copy').addEventListener('click', function () {
+			copyLink(function (t) { box.querySelector('.ia-msg').textContent = t; });
+		});
+		if (flip) {
+			flip.querySelector('button').addEventListener('click', function () {
+				dir = dir === 'cw' ? 'ccw' : 'cw';
+				lsSet(KEY + 'Dir', dir);
+				layout();
+				showFlip();
+			});
+		}
+		// 確かめ用: ?inapp=yoko|tate で選んだことにする / ?inappdir=ccw
+		var m = (q.match(/[?&]inapp=(yoko|tate)\b/) || [])[1];
+		if (/[?&]inappdir=ccw\b/.test(q)) { dir = 'ccw'; }
+		if (m) { choose(m); return; }
+		box.classList.add('on');   // 開くたびに選ぶ（前の選びは今は使わない）
+	}
+	var re = function () { layout(); };
+	window.addEventListener('resize', re);
+	window.addEventListener('orientationchange', function () { setTimeout(re, 300); });
+	layout();
+	if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', setup); } else { setup(); }
+}());
+</script>
+<!-- okaba-inapp:end -->
 <script src="index.js"></script>
 		<script>
 const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":39886072,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4,"serviceWorker":"index.service.worker.js"};
