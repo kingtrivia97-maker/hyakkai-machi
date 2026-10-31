@@ -311,7 +311,7 @@ body {
 		</div>
 
 <div id="okaba-upd" role="status"></div>
-<script>window.okabaBuild = '1793419414|14257141';</script>
+<script>window.okabaBuild = '1793421032|14137124';</script>
 <!-- okaba-pwa: ホーム画面に追加の案内・新しい版の入れかえ（tools/patch_web.py が入れる） -->
 <style>
 #okaba-a2hs{position:fixed;left:calc(12px + env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:20;
@@ -762,7 +762,7 @@ t.textContent=(m>0)?('読みこみ中… '+Math.min(100,Math.floor(v/m*100))+'%'
 }());
 </script>
 <!-- okaba-a2hs:end -->
-<!-- okaba-inapp:start okaba-inapp-v2（tools/patch_web_inapp.py） -->
+<!-- okaba-inapp:start okaba-inapp-v3（tools/patch_web_inapp.py） -->
 <style id="okaba-inapp-css">
 #okaba-bar{display:none!important}
 html.ia-on,html.ia-on body{background:#000!important}
@@ -802,11 +802,11 @@ html:not(.ia-rot) #okaba-iaf .ia-pill .ia-full{display:none}
 </style>
 <div id="okaba-iasp"></div>
 <div id="okaba-iaf"><div class="ia-pill" role="group" aria-label="遊び方"><button type="button" class="ia-turn">↻ 向き</button><button type="button" class="ia-tate">縦で遊ぶ</button><button type="button" class="ia-full">全画面にするには</button></div>
-<div class="ia-help" role="dialog" aria-label="全画面で遊ぶには"><div><b>インスタの中では、上と下のバーは消せません。</b></div>
-<div>右上か右下の <b>…</b> →「<b>外部ブラウザで開く</b>」（サファリで開く）にすると、全画面で遊べます。<small>サファリで「共有 → ホーム画面に追加」すると、次からアプリのように開けます。</small></div>
+<div class="ia-help" role="dialog" aria-label="全画面で遊ぶには"><div class="ia-h1"><b>インスタの中では、上と下のバーは消せません。</b></div>
+<div class="ia-h2">右上か右下の <b>…</b> →「<b>外部ブラウザで開く</b>」（サファリで開く）にすると、全画面で遊べます。<small>サファリで「共有 → ホーム画面に追加」すると、次からアプリのように開けます。</small></div>
 <span class="ia-msg" role="status"></span><div class="row"><button type="button" class="ia-copy">リンクをコピー</button><button type="button" class="ia-close">とじる</button></div></div></div>
 <script>
-/* アプリの中のブラウザで横画面（tools/patch_web_inapp.py・okaba-inapp-v2） */
+/* アプリの中のブラウザで横画面（tools/patch_web_inapp.py・okaba-inapp-v3） */
 (function () {
 	'use strict';
 	var ua = navigator.userAgent || '';
@@ -826,6 +826,11 @@ html:not(.ia-rot) #okaba-iaf .ia-pill .ia-full{display:none}
 		return;
 	}
 
+	// 説明の札の字（アプリの名前・iPhone / Android で出し分け）
+	var app = (fake || /Instagram/i.test(ua)) ? 'インスタ' : /Line\//.test(ua) ? 'LINE' : /FBAN|FBAV|FB_IAB|FBIOS/.test(ua) ? 'Facebook' :
+		/TikTok|musical_ly|Bytedance/i.test(ua) ? 'TikTok' : /Twitter/i.test(ua) ? 'X' : /MicroMessenger/i.test(ua) ? 'WeChat' : 'このアプリ';
+	var andr = /Android/.test(ua);
+	var brw = andr ? 'クローム' : 'サファリ';
 	var KEY = 'okabaInAppRot';
 	function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 	function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* 使えない時もある */ } }
@@ -1023,11 +1028,15 @@ html:not(.ia-rot) #okaba-iaf .ia-pill .ia-full{display:none}
 		collapse();
 	});
 	pillEl.querySelector('.ia-full').addEventListener('click', function () { help.classList.add('on'); pill(); });
+	help.querySelector('.ia-h1').innerHTML = '<b>' + app + 'の中では' + '、上と下のバーは消せません。</b>';
+	help.querySelector('.ia-h2').innerHTML = andr ?
+		'右上の <b>︙</b> →「<b>ブラウザで開く</b>」（クロームで開く）にすると、全画面で遊べます。<small>クロームで「︙ → ホーム画面に追加」すると、次からアプリのように開けます。</small>' :
+		'右上か右下の <b>…</b> →「<b>外部ブラウザで開く</b>」（サファリで開く）にすると、全画面で遊べます。<small>サファリで「共有 → ホーム画面に追加」すると、次からアプリのように開けます。</small>';
 	help.querySelector('.ia-close').addEventListener('click', function () { help.classList.remove('on'); pill(); });
 	help.querySelector('.ia-copy').addEventListener('click', function () {
 		var u = location.href.split('#')[0].replace(/[?&]inapptest=ig\b/, '');
 		var out = help.querySelector('.ia-msg');
-		var ok = function () { out.textContent = 'コピーしました。サファリの上の欄に貼りつけてね。'; };
+		var ok = function () { out.textContent = 'コピーしました。' + brw + 'の上の欄に貼りつけてね。'; };
 		try {
 			if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(u).then(ok, function () { out.textContent = u; }); return; }
 		} catch (e) { /* 下へ */ }
