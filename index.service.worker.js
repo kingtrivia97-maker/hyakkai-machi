@@ -4,7 +4,7 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1793605977|11724113';
+const CACHE_VERSION = '1793611426|10906489';
 /** @type {string} */
 const CACHE_PREFIX = '百怪町-sw-cache-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
