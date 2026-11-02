@@ -311,7 +311,7 @@ body {
 		</div>
 
 <div id="okaba-upd" role="status"></div>
-<script>window.okabaBuild = '1793604748|9918472';</script>
+<script>window.okabaBuild = '1793605977|11724113';</script>
 <!-- okaba-pwa: ホーム画面に追加の案内・新しい版の入れかえ（tools/patch_web.py が入れる） -->
 <style>
 #okaba-a2hs{position:fixed;left:calc(12px + env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:20;
@@ -392,8 +392,28 @@ body {
 				return new Promise(function () {});   // 読み直しを待つ（ゲームは始めない）
 			}
 			if (navigator.serviceWorker.controller) {
-				if (reg) { watch(reg); try { reg.update().catch(function () {}); } catch (e) { /* なにもしない */ } }
-				return null;
+				if (reg) { watch(reg); }
+				// okaba-sw-fresh: この index.html の版の保存が無い＝古い service worker が 古い一式（index.pck など）を出している
+				//   → 新しい service worker を取りに行き、入ったら入れかえて読み直す（ゲームは始めない・最大8秒待つ）
+				var want = '百怪町-sw-cache-' + (window.okabaBuild || '');
+				return race(caches.has(want), 1500).then(function (have) {
+					if (have !== false || !reg) {
+						try { if (reg) { reg.update().catch(function () {}); } } catch (e) { /* なにもしない */ }
+						return null;
+					}
+					var got = new Promise(function (r) {
+						function chk() { if (reg.waiting) { r(true); return true; } return false; }
+						reg.addEventListener('updatefound', function () {
+							var w = reg.installing;
+							if (w) { w.addEventListener('statechange', function () { if (w.state === 'installed') { chk(); } }); }
+						});
+						if (!chk()) { reg.update().then(chk).catch(function () { r(false); }); }
+					});
+					return race(got, 8000).then(function () {
+						if (applyUpdate(reg)) { return new Promise(function () {}); }
+						return null;
+					});
+				});
 			}
 			// 初めて: 登録して、このページを受け持つまで少し待つ（index.pck / index.wasm も保存されるように）
 			var claimed = new Promise(function (r) { navigator.serviceWorker.addEventListener('controllerchange', function () { r(true); }); });
@@ -1075,7 +1095,7 @@ html:not(.ia-rot) #okaba-iaf .ia-pill .ia-full{display:none}
 <!-- okaba-inapp:end -->
 <script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":10262072,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4,"serviceWorker":"index.service.worker.js"};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":10262152,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4,"serviceWorker":"index.service.worker.js"};
 const GODOT_THREADS_ENABLED = false;
 /* okaba-pack: */(function () {
 	let pick = 'etc2';
@@ -1101,7 +1121,7 @@ const GODOT_THREADS_ENABLED = false;
 	window.okabaPack = pick;
 	if (pick === 's3tc') {
 		GODOT_CONFIG.mainPack = 'index.s3tc.pck';
-		GODOT_CONFIG.fileSizes['index.s3tc.pck'] = 10262072;
+		GODOT_CONFIG.fileSizes['index.s3tc.pck'] = 10262152;
 		delete GODOT_CONFIG.fileSizes['index.pck'];
 	}
 })();

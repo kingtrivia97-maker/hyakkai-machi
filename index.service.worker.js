@@ -4,7 +4,7 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1793604748|9918472';
+const CACHE_VERSION = '1793605977|11724113';
 /** @type {string} */
 const CACHE_PREFIX = '百怪町-sw-cache-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
@@ -100,6 +100,24 @@ self.addEventListener(
 		const base = referrer.slice(0, referrer.lastIndexOf('/') + 1);
 		const local = url.startsWith(base) ? url.replace(base, '') : '';
 		const isCacheable = FULL_CACHE.some((v) => v === local) || (base === referrer && base.endsWith(CACHED_FILES[0]));
+		if (isNavigate) {
+			// okaba-nav-fresh: ページはいつもネットから（一時保存を通さない）。つながらない時だけ保存から
+			event.respondWith((async () => {
+				const cache = await caches.open(CACHE_NAME);
+				try {
+					await event.preloadResponse;
+					const r = await self.fetch(new Request(url, { cache: 'no-cache', credentials: 'same-origin' }));
+					if (r.ok) {
+						cache.put(CACHED_FILES[0], r.clone());
+					}
+					return r;
+				} catch (e) {
+					const c = (await cache.match(event.request, { ignoreSearch: true })) || (await cache.match(CACHED_FILES[0]));
+					return c || caches.match(OFFLINE_URL);
+				}
+			})());
+			return;
+		}
 		if (isNavigate || isCacheable) {
 			event.respondWith((async () => {
 				// Try to use cache first
