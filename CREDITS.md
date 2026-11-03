@@ -64,3 +64,4 @@ SANZU CALL（D:\アプリ\スレスパ風）の素材から、使う物だけを
 ## 追記 2026-10-30（Web 公開・ホーム画面のアイコン）
 - assets/ui/pwa/icon_*.png（ホーム画面のアイコン「百」と裂けた口の線。血なし）: このゲームで作った（tools/make_pwa_icons.py・字は BIZ UDGothic Bold／SIL OFL 1.1）。オリジナル。
 - Web 公開（GitHub Pages）には、この CREDITS.md・字体のライセンス（OFL_BIZUDGothic.txt）・Godot Engine のライセンス（GODOT_LICENSE.txt）を一緒に置く（tools/make_pages.py）。
+- （2026-11-03 第三怪 v0.5.9〜v0.6.0）assets/danchi/ に自作合成の効果音を足した（tools/audio/make_danchi_sfx.py・numpy／scipy で合成・録音なし）: koki（首の「コキ」）・zari（髪が天井をこする）・chase_start（追いかけの始まりの低い「ドン」と上がっていく不協和音のうねり）・kado_stab（角から顔の後の短い鋭い音）・sight_drone（初登場の低いうなり）。残響は音に焼きこみ。オリジナル。
